@@ -1,0 +1,65 @@
+[
+  {
+    "model": "users.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$dummy$H5lXIanFkC5loPwdummyhash", 
+      "last_login": null,
+      "is_superuser": false,
+      "email": "user@example.com",
+      "phone": "",
+      "city": "",
+      "avatar": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-03-05T10:00:00Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 1,
+    "fields": {
+      "title": "Тестовый курс",
+      "preview": "",
+      "description": "Описание тестового курса"
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 1,
+    "fields": {
+      "title": "Тестовый урок",
+      "description": "Описание тестового урока",
+      "preview": "",
+      "video_url": "https://example.com/lesson1",
+      "course": 1
+    }
+  },
+  {
+    "model": "users.payment",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "payment_date": "2026-03-05T12:00:00Z",
+      "course": 1,
+      "lesson": null,
+      "amount": "1000.00",
+      "payment_method": "cash"
+    }
+  },
+  {
+    "model": "users.payment",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "payment_date": "2026-03-05T13:00:00Z",
+      "course": null,
+      "lesson": 1,
+      "amount": "500.00",
+      "payment_method": "transfer"
+    }
+  }
+]
+
