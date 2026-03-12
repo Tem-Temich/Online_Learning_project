@@ -22,6 +22,20 @@ class PaymentSerializer(serializers.ModelSerializer):
         )
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "phone",
+            "city",
+            "avatar",
+            "is_active",
+            "is_staff",
+        )
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     payments = PaymentSerializer(many=True, read_only=True)
 
@@ -36,3 +50,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "payments",
         )
 
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "email",
+            "password",
+            "phone",
+            "city",
+            "avatar",
+        )
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def create(self, validated_data):
+        password1 = validated_data.pop("password")
+        created_user = User.objects.create_user(password=password1, **validated_data)
+        return created_user

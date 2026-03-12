@@ -1,13 +1,21 @@
-from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.viewsets import ModelViewSet
 
+from lms.permissions import IsModerator
 from .models import Payment, User
-from .serializers import PaymentSerializer, UserProfileSerializer
+from .serializers import (
+    PaymentSerializer,
+    UserProfileSerializer,
+    UserRegisterSerializer,
+    UserSerializer,
+)
 
 
 class PaymentListAPIView(ListAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -38,3 +46,15 @@ class UserProfileAPIView(RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class UserRegisterAPIView(CreateAPIView):
+    serializer_class = UserRegisterSerializer
+    permission_classes = (AllowAny,)
+    queryset = User.objects.all()
+
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated, IsModerator)
