@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Course, Lesson
-
+from .models import Course, Lesson, Subscription
+from .validators import LMSLinkValidator
 
 class LessonSerializer(serializers.ModelSerializer):
     """Полный сериализатор урока для отдельных эндпоинтов."""
@@ -8,6 +8,7 @@ class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = "__all__"
+        validators = [LMSLinkValidator(field='video_url')]
 
 
 class CourseLessonSerializer(serializers.ModelSerializer):
@@ -27,6 +28,7 @@ class CourseLessonSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     lessons_count = serializers.SerializerMethodField()
     lessons = CourseLessonSerializer(many=True, read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -37,7 +39,14 @@ class CourseSerializer(serializers.ModelSerializer):
             "description",
             "lessons_count",
             "lessons",
+            'is_subscribed'
         )
 
     def get_lessons_count(self, obj):
         return obj.lessons.count()
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return Subscription.objects.filter(user=request.user, course=obj).exists()
