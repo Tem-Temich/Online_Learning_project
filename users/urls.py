@@ -6,6 +6,7 @@ from .views import (
     UserProfileAPIView,
     UserRegisterAPIView,
     UserViewSet,
+PaymentCreateAPIView
 )
 
 router = DefaultRouter()
@@ -16,5 +17,6 @@ urlpatterns = [
     path("profile/", UserProfileAPIView.as_view(), name="user-profile"),
     path("register/", UserRegisterAPIView.as_view(), name="user-register"),
     path("", include(router.urls)),
+    path("payments/create/", PaymentCreateAPIView.as_view(), name="payment-create"),
 ]
 

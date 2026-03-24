@@ -8,6 +8,7 @@ from .paginators import LMSPagination
 from .models import Course, Lesson, Subscription
 from .serializers import CourseSerializer, LessonSerializer
 from .permissions import IsModerator, IsOwner
+from drf_spectacular.utils import extend_schema
 
 
 class CourseViewSet(ModelViewSet):
@@ -80,6 +81,25 @@ class LessonRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
 class SubscriptionAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "course_id": {"type": "integer"}
+                }
+            }
+        },
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "message": {"type": "string"}
+                }
+            }
+        }
+    )
     def post(self, request):
         user = request.user
         course_id = request.data["course_id"]

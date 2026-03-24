@@ -9,8 +9,9 @@ from .serializers import (
     UserProfileSerializer,
     UserRegisterSerializer,
     UserSerializer,
+PaymentCreateSerializer
 )
-
+from .services import create_stripe_product, create_stripe_price, create_stripe_session
 
 class PaymentListAPIView(ListAPIView):
     queryset = Payment.objects.all()
@@ -58,3 +59,21 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated, IsModerator)
+
+class PaymentCreateAPIView(CreateAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        payment = serializer.save(user=self.request.user)
+
+        product = create_stripe_product(payment)
+        price = create_stripe_price(payment, product.id)
+        session = create_stripe_session(price.id)
+
+        payment.stripe_product_id = product.id
+        payment.stripe_price_id = price.id
+        payment.stripe_session_id = session.id
+        payment.payment_link = session.url
+        payment.save()

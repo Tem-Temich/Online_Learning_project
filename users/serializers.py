@@ -19,8 +19,44 @@ class PaymentSerializer(serializers.ModelSerializer):
             "lesson",
             "amount",
             "payment_method",
+            "stripe_product_id",
+            "stripe_price_id",
+            "stripe_session_id",
+            "payment_link",
+        )
+        read_only_fields = (
+            "user",
+            "payment_date",
+            "stripe_product_id",
+            "stripe_price_id",
+            "stripe_session_id",
+            "payment_link",
+        )
+class PaymentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = (
+            "course",
+            "lesson",
+            "amount",
+            "payment_method",
         )
 
+    def validate(self, attrs):
+        course = attrs.get("course")
+        lesson = attrs.get("lesson")
+
+        if not course and not lesson:
+            raise serializers.ValidationError(
+                "Нужно указать либо курс, либо урок."
+            )
+
+        if course and lesson:
+            raise serializers.ValidationError(
+                "Нельзя одновременно указать и курс, и урок."
+            )
+
+        return attrs
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

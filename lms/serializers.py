@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Course, Lesson, Subscription
 from .validators import LMSLinkValidator
-
+from drf_spectacular.utils import extend_schema_field
 class LessonSerializer(serializers.ModelSerializer):
     """Полный сериализатор урока для отдельных эндпоинтов."""
 
@@ -42,9 +42,11 @@ class CourseSerializer(serializers.ModelSerializer):
             'is_subscribed'
         )
 
+    @extend_schema_field(int)
     def get_lessons_count(self, obj):
         return obj.lessons.count()
 
+    @extend_schema_field(bool)
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
