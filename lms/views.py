@@ -9,7 +9,11 @@ from .models import Course, Lesson, Subscription
 from .serializers import CourseSerializer, LessonSerializer
 from .permissions import IsModerator, IsOwner
 from drf_spectacular.utils import extend_schema
+from datetime import timedelta
+from django.db import transaction
+from django.utils import timezone
 
+from lms.tasks import send_course_update_email
 
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
@@ -17,6 +21,25 @@ class CourseViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = LMSPagination
 
+    def perform_update(self, serializer):
+        course = self.get_object()
+        previous_update = course.materials_updated_at
+
+        updated_course = serializer.save()
+
+        now = timezone.now()
+        should_notify = (
+                previous_update is None or
+                now - previous_update > timedelta(hours=4)
+        )
+
+        updated_course.materials_updated_at = now
+        updated_course.save(update_fields=["materials_updated_at"])
+
+        if should_notify:
+            transaction.on_commit(
+                lambda: send_course_update_email.delay(updated_course.id)
+            )
     def get_queryset(self):
         user = self.request.user
 
@@ -78,6 +101,27 @@ class LessonRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
             permission_classes = [IsAuthenticated, IsModerator | IsOwner]
 
         return [permission() for permission in permission_classes]
+
+    def perform_update(self, serializer):
+        lesson = self.get_object()
+        course = lesson.course
+        previous_update = course.materials_updated_at
+
+        serializer.save()
+
+        now = timezone.now()
+        should_notify = (
+                previous_update is None or
+                now - previous_update > timedelta(hours=4)
+        )
+
+        course.materials_updated_at = now
+        course.save(update_fields=["materials_updated_at"])
+
+        if should_notify:
+            transaction.on_commit(
+                lambda: send_course_update_email.delay(course.id)
+            )
 
 class SubscriptionAPIView(APIView):
     permission_classes = [IsAuthenticated]
